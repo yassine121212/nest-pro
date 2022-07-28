@@ -9,26 +9,89 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model User {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  email String @unique
-  hash  String
-  firstName String?
-  lastName  String?
-  bookmarks Bookmark[]
+  id            String     @id @default(uuid())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  email         String     @unique
+  hash          String
+  firstName     String?
+  lastName      String?
+  userName      String?     @unique
+  phone         String? 
+  address       String? 
+  birthday      String? 
+  city          String? 
+  isverified    Boolean?   @default(false)
+  picture       String? 
+  followings    String[]
+  followers     String[]
+  wrritenPosts  Post[]     @relation("wrritnPosts")
+  favoritePosts Post[]     @relation("favoritePosts")
+  skills        Skills[]
+  service       Service[]
+  Messages      Messages[]
+
+  @@unique([email, userName])
   @@map("users")
 }
 
-model Bookmark {
-  id        Int      @id @default(autoincrement())
+model Post {
+  id            String   @id @default(uuid())
+  title         String
+  user          User     @relation("wrritnPosts", fields: [userId], references: [id])
+  userId        String
+  favoritedBy   User?    @relation("favoritePosts", fields: [favoritedById], references: [id])
+  favoritedById String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("posts")
+}
+
+model Skills {
+  id        String   @id @default(uuid())
+  name      String
+  value     Int
+  User      User     @relation(fields: [userId], references: [id])
+  userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  title       String
+
+  @@map("skills")
+}
+
+model Service {
+  id          String  @id @default(uuid())
+  name        String
   description String?
-  link        String
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
-  @@map("bookmarks")
+  User        User    @relation(fields: [userId], references: [id])
+  userId      String
+
+  @@map("services")
+}
+
+model Conversation {
+  id        String     @id @default(uuid())
+  text      String
+  members   String[]
+  messages  Messages[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime?  @updatedAt
+
+  @@map("conversations")
+}
+
+model Messages {
+  id             String        @id @default(uuid())
+  text           String
+  user           User          @relation(fields: [userId], references: [id])
+  userId         String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime?     @updatedAt
+  Conversation   Conversation? @relation(fields: [conversationId], references: [id])
+  conversationId String?
+
+  @@map("messages")
 }
